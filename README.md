@@ -18,3 +18,7 @@ A tentative plan is:
 1. ESP-IDF using the Espressif VS Code plugin.
 1. ESP-IDF using the PIO VS Code plugin.
 1. ESP-IDF using the PIO CLI.
+
+## Errata
+
+* My testing is done on an X86_64 laptop running Debian Testing (Trixie) and an X86_64 desktop running Debian Stable (Bookworm.)
