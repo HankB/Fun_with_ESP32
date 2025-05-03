@@ -65,6 +65,35 @@ hbarta@rocinante:~/Programming/ESP32/Fun_with_ESP32/Arduino-IDE$ tree
 hbarta@rocinante:~/Programming/ESP32/Fun_with_ESP32/Arduino-IDE$ 
 ```
 
-"File -> Preferences" and Autosave is there and default on. One giant step for mankind. Next "Tools -> Library manager and ehter "DS18B20" in the search field. There are a bunch of hits, the first of which "more info" links to <https://github.com/matmunk/DS18B20>, but first commit and push.
+"File -> Preferences" and Autosave is there and default on. One giant step for mankind. Next "Tools -> Library manager and enter "DS18B20" in the search field. There are a bunch of hits, the first of which "more info" links to <https://github.com/matmunk/DS18B20>, but first commit and push.
 
+## 2025-04-15 DS18B20
 
+Install `DS18B20 by Matthias Munk Hansen` and go to the example <https://github.com/matmunk/DS18B20/blob/master/examples/Multiple/Multiple.ino> and copy/paste some code to my `blinky` sketch. (I have one sensor connected at present but plan to use more in the future.) Add code from `setup()` and try to build.
+
+```text
+In file included from /home/hbarta/Programming/ESP32/Fun_with_ESP32/Arduino-IDE/blinky/blinky.ino:16:
+/home/hbarta/Arduino/libraries/DS18B20/src/DS18B20.h:5:10: fatal error: OneWire.h: No such file or directory
+    5 | #include <OneWire.h>
+      |          ^~~~~~~~~~~
+compilation terminated.
+exit status 1
+
+Compilation error: exit status 1
+```
+
+Check the README <https://github.com/matmunk/DS18B20> and note the instructions to install the `onewire` library. Finding that in the Library Manager as `OneWire by Jim Studt, Tom Pollard, Robin James (and more)`. Install v2.3.8. The sketch now builds and after flashing... Not flashing.
+
+```text
+Sketch uses 299234 bytes (22%) of program storage space. Maximum is 1310720 bytes.
+Global variables use 20540 bytes (6%) of dynamic memory, leaving 307140 bytes for local variables. Maximum is 327680 bytes.
+esptool.py v4.8.1
+Serial port /dev/ttyUSB0
+Connecting......................................
+
+A fatal error occurred: Failed to connect to ESP32: Wrong boot mode detected (0x1b)! The chip needs to be in download mode.
+For troubleshooting steps visit: https://docs.espressif.com/projects/esptool/en/latest/troubleshooting.html
+Failed uploading: uploading error: exit status 2
+```
+
+This is a new one for me. Particularly odd since the sketch worked previously. Commentiong out the new code does not help. Restarting the IDE - same issue. Espressif link - not much help, Looking for a different library by entering search terms "DS18B20 ESP32" and find <https://github.com/junkfix/esp32-ds18b20> which I install.

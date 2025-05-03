@@ -11,7 +11,11 @@
 
 // Can use serial or blue interlan LED but not both
 // Internal LED is "1" in Arduino 1.x IDE
-#define use_serial 0
+#define use_serial 1
+
+#include <DS18B20.h>
+
+DS18B20 ds(2);
 
 void setup() {
 #if use_serial
@@ -19,6 +23,11 @@ void setup() {
 #else
   pinMode(LED_BUILTIN, OUTPUT);     // Initialize the LED_BUILTIN pin as an output
 #endif
+
+  Serial.print("Devices: ");
+  Serial.println(ds.getNumberOfDevices());
+  Serial.println();
+
 }
 
 // the loop function runs over and over again forever
