@@ -34,12 +34,12 @@ void blink_led_task(void *param)
         if (chatty)
             printf("Turning off the LED\n");
         gpio_set_level(blink_led, 0);
-        vTaskDelay(990 / portTICK_PERIOD_MS);
+        vTaskDelay(995 / portTICK_PERIOD_MS);
         /* Blink on (output high) */
         if (chatty)
             printf("Turning on the LED\n");
         gpio_set_level(blink_led, 1);
-        vTaskDelay(10 / portTICK_PERIOD_MS);
+        vTaskDelay(5 / portTICK_PERIOD_MS);
     }
 }
 
