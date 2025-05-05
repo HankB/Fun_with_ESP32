@@ -38,6 +38,10 @@ This is a secondary goal of this exercise. I have an Arduino based project that 
 
 I've got a similar project working on an ESP8266 <https://github.com/HankB/ESP8266_RTOS_DS18B20_publish> and which produces a *lot* of output in addition to publishing the DS18B20 temperature. There is also an Arduino variant <https://github.com/HankB/ESP8266_Arduino_MQTT_NTP_DS18B20>. I'm running each of these at present to see how long they keep running.
 
-Back to DS18B20 support for the ESP-RTOS-SDK framework... It doesn't look like there is built in support. But... ESP-RTOS-SDK is for ESP8266. the correct search term is "ESP-IDF" or "ESP-SDK" and that leads me to <https://components.espressif.com/components/espressif/ds18b20>, but their examples do not have complete code. I'm a bit unsure about this so I'll start it in a branch `esp32-ds18b20`.
+### find a DS18B20 driver
 
-This attempt did not go well with the library failing to build. Check the `esp32-ds18b20` branch README for details. Moving on.
+Back to DS18B20 support for the ESP-RTOS-SDK framework... It doesn't look like there is built in support. But... ESP-RTOS-SDK is for ESP8266. the correct search term is "ESP-IDF" or "ESP-SDK" and that leads me to <https://components.espressif.com/components/espressif/ds18b20>, but their examples do not have complete code. 
+
+Found <https://github.com/DavidAntliff/esp32-ds18b20>. I'm a bit unsure about this so I'll start it in a branch `esp32-ds18b20`.This attempt did not go well with the library failing to build. Check the `esp32-ds18b20` branch README for details. Moving on.
+
+Next found: <https://github.com/espressif/esp-idf/tree/master/examples/peripherals/rmt/onewire> and perhaps this is related to <https://components.espressif.com/components/espressif/ds18b20>. Having a go with it using branch `espressif-ds18b20`.
