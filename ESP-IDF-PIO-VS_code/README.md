@@ -44,4 +44,8 @@ Back to DS18B20 support for the ESP-RTOS-SDK framework... It doesn't look like t
 
 Found <https://github.com/DavidAntliff/esp32-ds18b20>. I'm a bit unsure about this so I'll start it in a branch `esp32-ds18b20`.This attempt did not go well with the library failing to build. Check the `esp32-ds18b20` branch README for details. Moving on.
 
-Next found: <https://github.com/espressif/esp-idf/tree/master/examples/peripherals/rmt/onewire> and perhaps this is related to <https://components.espressif.com/components/espressif/ds18b20>. Having a go with it using branch `espressif-ds18b20`.
+Next found: <https://github.com/espressif/esp-idf/tree/master/examples/peripherals/rmt/onewire> and perhaps this is related to <https://components.espressif.com/components/espressif/ds18b20>. Having a go with it using branch `espressif-ds18b20`. This turned intro another rabbit hole. That component is not readily available to PIO and adding it seemed to open a can-O-worms.
+
+Looking at <https://github.com/UncleRus/esp-idf-lib> (which I used for an ESP8266 project) I see no mention of PlatformIO.
+
+Another alternative is <https://github.com/aZholtikov/zh_ds18b20> and again no mention of PlatformIO. I'm setting aside further development on this using PlatformIO as it just jkeeps heading down rabbit holes.
