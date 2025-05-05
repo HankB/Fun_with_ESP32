@@ -12,6 +12,14 @@
 //#include <freertos/event_groups.h>
 #include "esp_rom_gpio.h"
 
+#include "onewire_bus.h"
+#include "ds18b20.h"
+
+static const char *TAG = "example";
+
+#define EXAMPLE_ONEWIRE_BUS_GPIO    2
+#define EXAMPLE_ONEWIRE_MAX_DS18B20 8
+
 static const bool chatty = true;
 
 // LED ========================================
