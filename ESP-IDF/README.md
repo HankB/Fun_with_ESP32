@@ -100,4 +100,4 @@ And no flash. Examining the code looks like it is using GPIO 5. The built in (bl
 idf.py menuconfig
 ```
 
-Change the example parameter to `2`, build and flash and now have a flashing blue LED. NB: `flash` does not automatically run `build` like the `make flash` command for the ESP8266.
+Change the example parameter to `2`, build and flash and now have a flashing blue LED. NB: `flash` does not automatically run `build` like the `make flash` command for the ESP8266. Next up, it looks like the `$IDF_PATH/examples/peripherals/rmt/onewire` covers the `onewire` and DS18B20 driver.
