@@ -2,6 +2,10 @@
 
 Create a project using the ESP-IDF (with FreeRTOS) via CLI and without PlatformIO. But PlatformIO seems to be very convenient, so I may start with that instead. (as of 2025-05-03) I started with that and Serial and GPIO was very straight forward. Finding a DS18B20 driver was a maddening challenge and ultimately something I chose not to pursue.
 
+## Status
+
+* 2025-05-04 By the judicious selection of the right ESP-IDF example, Serial output and blinking LED are already working.
+
 ## 2025-05-04 getting started
 
 May the 4th be with you!
@@ -80,4 +84,20 @@ idf.py flash
 idf.py monitor
 ```
 
-And it all works. Now to browse the examples in `$IDF_PATH/examples` to decide which seems to be the most suitable starting point.
+And it all works. Now to browse the examples in `$IDF_PATH/examples` to decide which seems to be the most suitable starting point. That might be `$IDF_PATH/examples/get-started/blink`
+
+```text
+cp -r $IDF_PATH/examples/get-started/blink .
+cd blink
+idf.py set-target esp32
+idf.py build
+idf.py flash
+```
+
+And no flash. Examining the code looks like it is using GPIO 5. The built in (blue LED) is GPIO 2.
+
+```text
+idf.py menuconfig
+```
+
+Change the example parameter to `2`, build and flash and now have a flashing blue LED. NB: `flash` does not automatically run `build` like the `make flash` command for the ESP8266.
