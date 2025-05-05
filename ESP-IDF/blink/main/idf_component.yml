@@ -1,2 +1,2 @@
 dependencies:
-  espressif/led_strip: "^2.4.1"
+  ds18b20: "^0.1.0"

@@ -11,8 +11,12 @@
 #include "freertos/task.h"
 #include "driver/gpio.h"
 #include "esp_log.h"
-#include "led_strip.h"
 #include "sdkconfig.h"
+
+#include "esp_check.h"
+#include "onewire_bus.h"
+#include "ds18b20.h"
+
 
 static const char *TAG = "example";
 
@@ -23,52 +27,6 @@ static const char *TAG = "example";
 
 static uint8_t s_led_state = 0;
 
-#ifdef CONFIG_BLINK_LED_STRIP
-
-static led_strip_handle_t led_strip;
-
-static void blink_led(void)
-{
-    /* If the addressable LED is enabled */
-    if (s_led_state) {
-        /* Set the LED pixel using RGB from 0 (0%) to 255 (100%) for each color */
-        led_strip_set_pixel(led_strip, 0, 16, 16, 16);
-        /* Refresh the strip to send data */
-        led_strip_refresh(led_strip);
-    } else {
-        /* Set all LED off to clear all pixels */
-        led_strip_clear(led_strip);
-    }
-}
-
-static void configure_led(void)
-{
-    ESP_LOGI(TAG, "Example configured to blink addressable LED!");
-    /* LED strip initialization with the GPIO and pixels number*/
-    led_strip_config_t strip_config = {
-        .strip_gpio_num = BLINK_GPIO,
-        .max_leds = 1, // at least one LED on board
-    };
-#if CONFIG_BLINK_LED_STRIP_BACKEND_RMT
-    led_strip_rmt_config_t rmt_config = {
-        .resolution_hz = 10 * 1000 * 1000, // 10MHz
-        .flags.with_dma = false,
-    };
-    ESP_ERROR_CHECK(led_strip_new_rmt_device(&strip_config, &rmt_config, &led_strip));
-#elif CONFIG_BLINK_LED_STRIP_BACKEND_SPI
-    led_strip_spi_config_t spi_config = {
-        .spi_bus = SPI2_HOST,
-        .flags.with_dma = true,
-    };
-    ESP_ERROR_CHECK(led_strip_new_spi_device(&strip_config, &spi_config, &led_strip));
-#else
-#error "unsupported LED strip backend"
-#endif
-    /* Set all LED off to clear all pixels */
-    led_strip_clear(led_strip);
-}
-
-#elif CONFIG_BLINK_LED_GPIO
 
 static void blink_led(void)
 {
@@ -84,9 +42,67 @@ static void configure_led(void)
     gpio_set_direction(BLINK_GPIO, GPIO_MODE_OUTPUT);
 }
 
-#else
-#error "unsupported LED type"
-#endif
+/**********************************************************
+ * 
+ * Code for DS18B20 copied from 
+ * https://github.com/espressif/esp-idf/blob/master/examples/peripherals/rmt/onewire/main/onewire_example_main.c
+ * 
+ * (plus some headers at top of file)
+ * 
+ **********************************************************/
+
+ #define EXAMPLE_ONEWIRE_BUS_GPIO    4
+ #define EXAMPLE_ONEWIRE_MAX_DS18B20 8
+
+ static ds18b20_device_handle_t ds18b20s[EXAMPLE_ONEWIRE_MAX_DS18B20];
+ static int ds18b20_device_num = 0;
+
+ static void configure_ds18b20(void)
+ {
+    // install new 1-wire bus
+    onewire_bus_handle_t bus;
+    onewire_bus_config_t bus_config = {
+        .bus_gpio_num = EXAMPLE_ONEWIRE_BUS_GPIO,
+    };
+    onewire_bus_rmt_config_t rmt_config = {
+        .max_rx_bytes = 10, // 1byte ROM command + 8byte ROM number + 1byte device command
+    };
+    ESP_ERROR_CHECK(onewire_new_bus_rmt(&bus_config, &rmt_config, &bus));
+    ESP_LOGI(TAG, "1-Wire bus installed on GPIO%d", EXAMPLE_ONEWIRE_BUS_GPIO);
+
+    onewire_device_iter_handle_t iter = NULL;
+    onewire_device_t next_onewire_device;
+    esp_err_t search_result = ESP_OK;
+
+    // create 1-wire device iterator, which is used for device search
+    ESP_ERROR_CHECK(onewire_new_device_iter(bus, &iter));
+    ESP_LOGI(TAG, "Device iterator created, start searching...");
+    do {
+        search_result = onewire_device_iter_get_next(iter, &next_onewire_device);
+        if (search_result == ESP_OK) { // found a new device, let's check if we can upgrade it to a DS18B20
+            ds18b20_config_t ds_cfg = {};
+            if (ds18b20_new_device(&next_onewire_device, &ds_cfg, &ds18b20s[ds18b20_device_num]) == ESP_OK) {
+                ESP_LOGI(TAG, "Found a DS18B20[%d], address: %016llX", ds18b20_device_num, next_onewire_device.address);
+                ds18b20_device_num++;
+                if (ds18b20_device_num >= EXAMPLE_ONEWIRE_MAX_DS18B20) {
+                    ESP_LOGI(TAG, "Max DS18B20 number reached, stop searching...");
+                    break;
+                }
+            } else {
+                ESP_LOGI(TAG, "Found an unknown device, address: %016llX", next_onewire_device.address);
+            }
+        }
+    } while (search_result != ESP_ERR_NOT_FOUND);
+    ESP_ERROR_CHECK(onewire_del_device_iter(iter));
+    ESP_LOGI(TAG, "Searching done, %d DS18B20 device(s) found", ds18b20_device_num);
+
+    // set resolution for all DS18B20s
+    for (int i = 0; i < ds18b20_device_num; i++) {
+        // set resolution
+        ESP_ERROR_CHECK(ds18b20_set_resolution(ds18b20s[i], DS18B20_RESOLUTION_12B));
+    }    
+ }
+
 
 void app_main(void)
 {
@@ -94,12 +110,26 @@ void app_main(void)
     /* Configure the peripheral according to the LED type */
     configure_led();
 
+    /* configure DS18B20 for reading temperature */
+    configure_ds18b20();
+
     while (1) {
         ESP_LOGI(TAG, "Turning the LED %s!", s_led_state == true ? "ON" : "OFF");
         blink_led();
         /* Toggle the LED state */
         s_led_state = !s_led_state;
-        vTaskDelay(CONFIG_BLINK_PERIOD / portTICK_PERIOD_MS);
-        printf("Does a simple printf() work? Yes!\n");
+
+           // get temperature from sensors one by one
+        float temperature;
+
+        for (int i = 0; i < ds18b20_device_num; i ++) {
+
+            ESP_ERROR_CHECK(ds18b20_trigger_temperature_conversion(ds18b20s[i]));
+            ESP_ERROR_CHECK(ds18b20_get_temperature(ds18b20s[i], &temperature));
+            ESP_LOGI(TAG, "temperature read from DS18B20[%d]: %fC", i, temperature);
+            printf("device %d, handle 0x%X, temperature %f°F\n", 
+                i, (unsigned int)ds18b20s[i], temperature/5.0*9.0+32.0);
+        }
+        vTaskDelay((1000) / portTICK_PERIOD_MS);
     }
 }
