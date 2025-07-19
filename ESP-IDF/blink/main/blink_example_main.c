@@ -51,7 +51,7 @@ static void configure_led(void)
  * 
  **********************************************************/
 
- #define EXAMPLE_ONEWIRE_BUS_GPIO    4
+ #define EXAMPLE_ONEWIRE_BUS_GPIO    10
  #define EXAMPLE_ONEWIRE_MAX_DS18B20 8
 
  static ds18b20_device_handle_t ds18b20s[EXAMPLE_ONEWIRE_MAX_DS18B20];

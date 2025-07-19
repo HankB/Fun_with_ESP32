@@ -67,3 +67,25 @@ The pixel number indicates the pixel position in the LED strip. For a single LED
 * If the LED isn't blinking, check the GPIO or the LED type selection in the `Example Configuration` menu.
 
 For any technical queries, please open an [issue](https://github.com/espressif/esp-idf/issues) on GitHub. We will get back to you soon.
+
+## 2025-07-19 local addendum
+
+Everyghing above looks like the original README for this example. The example has been expanded to read a connected DS18B20 sensor. At present I will be building it to execute on an ESP32-C3 (RISC-V). Steps to do so include"
+
+* Original ESP tool chain installed per instructions at <https://docs.espressif.com/projects/esp-idf/en/v5.4.2/esp32/get-started/linux-macos-setup.html> (Original install was 5.4.1)
+* Switch drop down upper left from ESP32 to ESP32-C3 and note need to run:
+
+```text
+cd ~/esp/esp-idf
+./install.sh esp32c3
+```
+
+* Switch to code directory `cd ~/Programming/ESP32/Fun_with_ESP32/ESP-IDF/blink` (which may differ for you.)
+* Source the toolchain setup script `. ~/esp/esp-idf/export.sh`
+* Change the target `idf.py set-target esp32c3`
+* Check the configuration `idf.py menuconfig` (Note: `set-target` seems to reset the configuration to default values.) ("Example Configuration" -> "Blink LED type" = GPIO and "Blink GPIO number" = 8, on board blue LED.)
+* build, flash and monitor - all works! The ESP comes up as `/dev/ttyACM0` on my host.
+* Next: DS18B20. Presently on GPIO4 and that's used for SPI. Used for something on board like flash? Since I don;t know and there are other options, I'll use something else. GPIO10 may be otherwise unused. (See <https://dl.artronshop.co.th/ESP32-C3%20SuperMini%20datasheet.pdf> "Pin Use.)
+* Power the DS18B20 from '3V3', data to '10' and Ground to 'G'. 3.9K pullup (could not find 4.7K.)
+* Change `EXAMPLE_ONEWIRE_BUS_GPIO` to 10, build, flash and monitor.
+* Recognizes DS18B20 and reads the temperature.
